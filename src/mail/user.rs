@@ -12,6 +12,7 @@ pub fn send_welcome(mail: &Mail, user: &users::Model, link: &str) -> Result<()> 
     let user_name = user.given_name.clone();
     let app_name = mail.from.name.clone().unwrap();
     let message = "Thanks for joining our platform.";
+    let link_lbl = "Set Password";
     let subject = format!("Welcome to {app_name}");
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
@@ -32,7 +33,8 @@ pub fn send_welcome(mail: &Mail, user: &users::Model, link: &str) -> Result<()> 
                 .replace("{app_name}", &app_name)
                 .replace("{message}", message)
                 .replace("{subject}", &subject)
-                .replace("{link}", link),
+                .replace("{link}", link)
+                .replace("{link_lbl}", link_lbl),
         ))?;
 
     mail.transport.send(&message)?;
@@ -43,6 +45,7 @@ pub fn send_reset(mail: &Mail, user: &users::Model, link: &str) -> Result<()> {
     let user_name = user.given_name.clone();
     let app_name = mail.from.name.clone().unwrap();
     let message = "You requested a password reset link.";
+    let link_lbl = "Set Password";
     let subject = format!("{app_name} Password Reset");
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
@@ -63,7 +66,8 @@ pub fn send_reset(mail: &Mail, user: &users::Model, link: &str) -> Result<()> {
                 .replace("{app_name}", &app_name)
                 .replace("{message}", message)
                 .replace("{subject}", &subject)
-                .replace("{link}", link),
+                .replace("{link}", link)
+                .replace("{link_lbl}", link_lbl),
         ))?;
 
     mail.transport.send(&message)?;
