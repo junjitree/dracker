@@ -13,6 +13,8 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(pk_auto(Users::Id).big_unsigned())
                     .col(string(Users::Email).unique_key().not_null())
+                    .col(string(Users::GivenName))
+                    .col(string(Users::Surname))
                     .col(string(Users::Password).not_null())
                     .col(
                         timestamp(Users::CreatedAt)
@@ -59,6 +61,8 @@ enum Users {
     Table,
     Id,
     Email,
+    GivenName,
+    Surname,
     Password,
     CreatedAt,
     UpdatedAt,

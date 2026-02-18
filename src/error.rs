@@ -6,6 +6,8 @@ use axum::{
 use serde_json::json;
 use tracing::error;
 
+use crate::crypto;
+
 #[derive(Debug)]
 pub enum Error {
     BadRequest(String),
@@ -15,6 +17,42 @@ pub enum Error {
     InvalidCredentials,
     NotFound,
     Unauthorized,
+}
+
+impl From<crypto::Error> for Error {
+    fn from(_: crypto::Error) -> Self {
+        Self::Internal("crypto::Error".into())
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Self {
+        Self::Internal(err.to_string())
+    }
+}
+
+impl From<lettre::transport::smtp::Error> for Error {
+    fn from(err: lettre::transport::smtp::Error) -> Self {
+        Self::Internal(err.to_string())
+    }
+}
+
+impl From<lettre::error::Error> for Error {
+    fn from(err: lettre::error::Error) -> Self {
+        Self::Internal(err.to_string())
+    }
+}
+
+impl From<argon2::Error> for Error {
+    fn from(err: argon2::Error) -> Self {
+        Self::Internal(err.to_string())
+    }
+}
+
+impl From<argon2::password_hash::Error> for Error {
+    fn from(err: argon2::password_hash::Error) -> Self {
+        Self::Internal(err.to_string())
+    }
 }
 
 impl From<std::env::VarError> for Error {

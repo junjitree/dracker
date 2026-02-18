@@ -4,8 +4,12 @@ use axum::http::Method;
 use axum::http::header;
 use jsonwebtoken::DecodingKey;
 use jsonwebtoken::EncodingKey;
+use lettre::SmtpTransport;
+use lettre::message::Mailbox;
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::transport::smtp::client::Tls;
+use lettre::transport::smtp::client::TlsParameters;
 use sea_orm::Database;
-use sea_orm::DatabaseConnection;
 use std::env;
 use std::fs;
 use std::net::SocketAddr;
@@ -14,25 +18,23 @@ use tower_http::cors::CorsLayer;
 use tracing::info;
 
 mod auth;
+mod crypto;
 mod entity;
 mod error;
 mod http;
+mod mail;
 mod response;
 mod result;
+mod state;
 mod util;
 
 use crate::http::{DEFAULT_PORT, v1::auth::X_CSRF_TOKEN};
+use crate::state::AppState;
+use crate::state::Mail;
 
 pub use self::error::*;
 pub use self::response::*;
 pub use self::result::*;
-
-#[derive(Clone)]
-pub struct AppState {
-    db: DatabaseConnection,
-    prv_key: EncodingKey,
-    pub_key: DecodingKey,
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -54,14 +56,42 @@ async fn main() -> Result<()> {
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let db = Database::connect(db_url).await?;
 
+    let spa_url = env::var("SPA_URL").expect("SPA_URL must be set");
+    let origin = spa_url.clone();
+
+    let mail_host = env::var("MAIL_HOST").expect("MAIL_HOST must be set");
+    let mail_user = env::var("MAIL_USER").expect("MAIL_USER must be set");
+    let mail_pass = env::var("MAIL_PASS").expect("MAIL_PASS must be set");
+    let mail_name = env::var("MAIL_NAME").expect("MAIL_NAME must be set");
+    let mail_addr = env::var("MAIL_ADDR").expect("MAIL_ADDR must be set");
+    let mail_port = env::var("MAIL_PORT").unwrap_or("2525".to_string());
+
+    let creds = Credentials::new(mail_user.clone(), mail_pass);
+
+    let transport = SmtpTransport::relay(&mail_host)
+        .unwrap()
+        .port(mail_port.parse().unwrap())
+        .tls(Tls::Required(
+            TlsParameters::new(mail_host).expect("Could not configure TLS"),
+        ))
+        .credentials(creds)
+        .build();
+
+    let from = Mailbox::new(Some(mail_name), mail_addr.parse().unwrap());
+
+    let mail = Mail { transport, from };
+
     let state = AppState {
         db,
+        mail,
         prv_key,
         pub_key,
+        spa_url,
     };
 
     let cors = CorsLayer::new()
         .allow_origin([
+            origin.parse().unwrap(),
             // INFO: This is for local development
             "http://localhost:9001".parse().unwrap(),
         ])
