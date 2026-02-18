@@ -10,7 +10,7 @@ pub const HTML_TEMPLATE: &str = include_str!("template.html");
 pub fn send_welcome(mail: &Mail, user: &users::Model, link: &str) -> Result<()> {
     let user_name = user.given_name.clone();
     let app_name = mail.from.name.clone().unwrap();
-    let message = "You've been invited to join our platform.";
+    let message = "Thanks for joining our platform.";
     let subject = format!("Welcome to {app_name}");
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
