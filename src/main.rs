@@ -16,6 +16,8 @@ mod http;
 mod result;
 mod util;
 
+use crate::http::v1::auth::X_CSRF_TOKEN;
+
 pub use self::error::*;
 pub use self::result::*;
 
@@ -24,7 +26,6 @@ pub struct AppState {
     db: DatabaseConnection,
 }
 
-const X_CSRF_TOKEN: &str = "x-csrf-token";
 const DEFAULT_PORT: u16 = 3000;
 
 #[tokio::main]
@@ -59,7 +60,7 @@ async fn main() -> Result<()> {
 
     let app = Router::new()
         .merge(http::root::routes())
-        .merge(http::v1::routes())
+        .merge(http::v1::routes(&state))
         .with_state(state)
         .layer(cors);
 
