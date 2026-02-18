@@ -2,6 +2,7 @@ use lettre::{
     Message, Transport,
     message::{Mailbox, MultiPart},
 };
+use tracing::debug;
 
 use crate::{Mail, Result, entity::users};
 
@@ -14,6 +15,8 @@ pub fn send_welcome(mail: &Mail, user: &users::Model, link: &str) -> Result<()> 
     let subject = format!("Welcome to {app_name}");
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
+
+    debug!(text);
 
     let message = Message::builder()
         .from(mail.from.clone())
@@ -40,6 +43,8 @@ pub fn send_reset(mail: &Mail, user: &users::Model, link: &str) -> Result<()> {
     let subject = format!("{app_name} Password Reset");
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
+
+    debug!(text);
 
     let message = Message::builder()
         .from(mail.from.clone())
