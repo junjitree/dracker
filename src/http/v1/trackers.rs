@@ -12,7 +12,7 @@ struct Dto {
 }
 
 pub fn routes() -> Router {
-    Router::new().route("/", get(index))
+    Router::new().route("/trackers", get(index))
 }
 
 async fn index() -> Result<Json<Vec<Dto>>> {
