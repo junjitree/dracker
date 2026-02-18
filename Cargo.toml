@@ -3,13 +3,17 @@ name = "dracker"
 version = "0.1.0"
 edition = "2024"
 
+[workspace]
+members = [".", "migration"]
+
 [dependencies]
 axum = "0.8"
 dotenv = "0.15"
+migration = { path = "migration" }
 sea-orm = { version = "1.1", features = [
   "macros",
   "runtime-tokio-rustls",
-  "sqlx-sqlite",
+  "sqlx-mysql",
 ] }
 serde = "1.0"
 serde_json = "1.0"

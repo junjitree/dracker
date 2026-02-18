@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+
+name=dracker
+
+man=none
+sql=none
+
+if command -v docker >/dev/null; then
+    man=docker
+fi
+
+if command -v podman >/dev/null; then
+    man=podman
+elif command -v docker >/dev/null; then
+    man=docker
+fi
+
+if command -v mariadb >/dev/null; then
+    sql=mariadb
+elif command -v mysql >/dev/null; then
+    sql=mysql
+fi
+
+if [ $man = "none" ]; then
+    echo "You need docker or podman in your \$PATH"
+    exit 1
+fi
+
+if [ $sql = "none" ]; then
+    echo "You need mariadb (client) or mysql (client) in your \$PATH"
+    exit 1
+fi
+
+mkdir -p data/mysql
+echo "Starting MySQL server..."
+$man run --replace --name $name -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 -v ./data/mysql:/var/lib/mysql -d docker.io/library/mysql:8
+echo "Started MySQL server..."
+echo "Waiting for MySQL server to start..."
+max_retries=30
+retry_count=0
+until $sql -uroot -h127.0.0.1 -e "SELECT 1;" >/dev/null 2>&1; do
+    if [ "$retry_count" -ge "$max_retries" ]; then
+        echo "Failed to connect to MySQL after $max_retries attempts. Exiting."
+        $man container stop "$name"
+        exit 1
+    fi
+    echo "MySQL not ready yet. Retrying in 1 second..."
+    sleep 1
+    retry_count=$((retry_count + 1))
+done
+echo "MySQL is up and running!"
+$sql -uroot -h127.0.0.1 -e "create database if not exists dracker"
+$sql -uroot -h127.0.0.1 dracker
+$man container stop $name
