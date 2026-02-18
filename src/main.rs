@@ -1,15 +1,17 @@
-use axum::{Router, http::StatusCode, routing::get};
+mod error;
+mod http;
+mod result;
+mod util;
+
+pub use self::error::*;
+pub use self::result::*;
 
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
-    let app = Router::new().route("/", get(handler));
+    util::init();
 
-    // run it with hyper on localhost:3000
+    let app = http::routes();
+
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn handler() -> StatusCode {
-    StatusCode::IM_A_TEAPOT
 }
