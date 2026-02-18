@@ -1,5 +1,6 @@
-use crate::{AppState, entity::prelude::Tracker};
+use crate::{AppState, entity::prelude::Trackers};
 use axum::{Json, Router, extract::State, routing::get};
+use chrono::{DateTime, Utc};
 use sea_orm::{EntityTrait, FromQueryResult};
 use serde::Serialize;
 
@@ -9,8 +10,8 @@ use crate::result::Result;
 struct Dto {
     id: u64,
     name: String,
-    created_at: String,
-    updated_at: String,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
 }
 
 pub fn routes() -> Router<AppState> {
@@ -18,6 +19,6 @@ pub fn routes() -> Router<AppState> {
 }
 
 async fn index(State(state): State<AppState>) -> Result<Json<Vec<Dto>>> {
-    let trackers = Tracker::find().into_model::<Dto>().all(&state.db).await?;
+    let trackers = Trackers::find().into_model::<Dto>().all(&state.db).await?;
     Ok(Json(trackers))
 }
