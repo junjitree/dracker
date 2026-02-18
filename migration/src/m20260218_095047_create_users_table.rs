@@ -9,38 +9,38 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Trackers::Table)
+                    .table(Users::Table)
                     .if_not_exists()
-                    .col(pk_auto(Trackers::Id).big_unsigned())
-                    .col(string(Trackers::Name))
-                    .col(text(Trackers::Desc))
+                    .col(pk_auto(Users::Id).big_unsigned())
+                    .col(string(Users::Email).unique_key().not_null())
+                    .col(string(Users::Password).not_null())
                     .col(
-                        timestamp(Trackers::CreatedAt)
-                            .not_null()
-                            .default(Expr::current_timestamp()),
+                        timestamp(Users::CreatedAt)
+                            .default(Expr::current_timestamp())
+                            .not_null(),
                     )
                     .col(
-                        timestamp(Trackers::UpdatedAt)
-                            .not_null()
-                            .default(Expr::current_timestamp()),
+                        timestamp(Users::UpdatedAt)
+                            .default(Expr::current_timestamp())
+                            .not_null(),
                     )
                     .index(
                         Index::create()
-                            .name("idx_tracker_name")
-                            .table(Trackers::Table)
-                            .col(Trackers::Name),
+                            .name("idx_email")
+                            .table(Users::Table)
+                            .col(Users::Email),
                     )
                     .index(
                         Index::create()
                             .name("idx_created_at")
-                            .table(Trackers::Table)
-                            .col(Trackers::CreatedAt),
+                            .table(Users::Table)
+                            .col(Users::CreatedAt),
                     )
                     .index(
                         Index::create()
                             .name("idx_updated_at")
-                            .table(Trackers::Table)
-                            .col(Trackers::UpdatedAt),
+                            .table(Users::Table)
+                            .col(Users::UpdatedAt),
                     )
                     .to_owned(),
             )
@@ -49,17 +49,17 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Trackers::Table).to_owned())
+            .drop_table(Table::drop().table(Users::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Trackers {
+enum Users {
     Table,
     Id,
-    Name,
-    Desc,
+    Email,
+    Password,
     CreatedAt,
     UpdatedAt,
 }
