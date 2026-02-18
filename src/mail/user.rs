@@ -16,7 +16,10 @@ pub fn send_welcome(mail: &Mail, user: &users::Model, link: &str) -> Result<()> 
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
 
-    debug!(text);
+    if cfg!(debug_assertions) {
+        debug!(text);
+        return Ok(());
+    }
 
     let message = Message::builder()
         .from(mail.from.clone())
@@ -44,7 +47,10 @@ pub fn send_reset(mail: &Mail, user: &users::Model, link: &str) -> Result<()> {
     let text =
         format!("Hi {user_name},\n{message}, Set password here: {link}\nCheers,\n{app_name} Team");
 
-    debug!(text);
+    if cfg!(debug_assertions) {
+        debug!(text);
+        return Ok(());
+    }
 
     let message = Message::builder()
         .from(mail.from.clone())
