@@ -3,14 +3,14 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "trackers")]
+#[sea_orm(table_name = "user_tokens")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: u64,
     pub user_id: u64,
-    pub name: String,
-    #[sea_orm(column_type = "Text")]
-    pub desc: String,
+    #[sea_orm(column_type = "Binary(16)", unique)]
+    pub token: Vec<u8>,
+    pub agent: String,
     pub created_at: DateTimeUtc,
     pub updated_at: DateTimeUtc,
 }
