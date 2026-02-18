@@ -25,6 +25,7 @@ mod http;
 mod mail;
 mod response;
 mod result;
+mod skippy;
 mod state;
 mod util;
 

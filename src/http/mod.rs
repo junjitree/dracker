@@ -1,4 +1,5 @@
 pub mod middleware;
+pub mod params;
 pub mod root;
 pub mod v1;
 

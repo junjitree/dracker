@@ -1,6 +1,5 @@
+use sea_orm::Order;
 use std::str::FromStr;
-
-use sea_orm::{Order, prelude::Expr, sea_query::SimpleExpr};
 
 pub const TAKE_DEF: u64 = 20;
 pub const TAKE_MAX: u64 = 100;
@@ -27,20 +26,4 @@ where
     C: FromStr,
 {
     column.and_then(|s| s.parse::<C>().ok()).unwrap_or(default)
-}
-
-pub fn column_cust(allowed: Vec<&str>, col: Option<String>, default: &str) -> SimpleExpr {
-    let def = default.to_string();
-    let col = match col {
-        Some(col) => {
-            if !allowed.contains(&col.as_str()) {
-                def
-            } else {
-                col
-            }
-        }
-        None => def,
-    };
-
-    Expr::cust(col)
 }
