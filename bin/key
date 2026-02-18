@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+if [ ! -f ".auth.key.private.pem" ]; then
+    echo "Generating new Ed25519 private key..."
+    openssl genpkey -algorithm Ed25519 -out .auth.key.private.pem
+    echo "Private key '.auth.key.private.pem' generated successfully."
+else
+    echo "Private key '.auth.key.private.pem' already exists. Skipping generation."
+fi
+
+if [ ! -f ".auth.key.public.pem" ]; then
+    if [ ! -f ".auth.key.private.pem" ]; then
+        echo "Error: .auth.key.private.pem not found. Cannot generate public key."
+        exit 1
+    fi
+    echo "Generating public key from the private key..."
+    openssl pkey -in .auth.key.private.pem -pubout -out .auth.key.public.pem
+    echo "Public key '.auth.key.public.pem' generated successfully."
+else
+    echo "Public key '.auth.key.public.pem' already exists. Skipping generation."
+fi
+
+echo "Key generation process complete."

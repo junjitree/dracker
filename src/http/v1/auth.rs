@@ -12,7 +12,7 @@ use axum_extra::extract::{
 use base64::{Engine, engine::general_purpose};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{Algorithm, Header, encode};
-use rand::RngCore;
+use rand::Rng;
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, ModelTrait, QueryFilter,
 };
@@ -116,10 +116,10 @@ async fn logout(
 ) -> Result<Response> {
     UserTokens::find()
         .filter(user_tokens::Column::Token.eq(auth.uuid))
-        .one(&state.db_admin)
+        .one(&state.db)
         .await?
         .ok_or(Error::Unauthorized)?
-        .delete(&state.db_admin)
+        .delete(&state.db)
         .await?;
 
     Ok(Response::NoContent)
@@ -132,7 +132,7 @@ async fn login(params: UserParams, headers: HeaderMap, state: &AppState) -> Resu
 
     let user = Users::find()
         .filter(users::Column::Email.eq(params.email))
-        .one(&state.db_admin)
+        .one(&state.db)
         .await?
         .ok_or(Error::InvalidCredentials)?;
 
@@ -163,7 +163,7 @@ async fn login(params: UserParams, headers: HeaderMap, state: &AppState) -> Resu
         agent: Set(agent),
         ..Default::default()
     }
-    .insert(&state.db_admin)
+    .insert(&state.db)
     .await?;
 
     let token = match encode(&Header::new(Algorithm::EdDSA), &auth, &state.prv_key) {

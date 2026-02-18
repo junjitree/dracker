@@ -43,13 +43,13 @@ pub async fn auth(
 
     let user_token = UserTokens::find()
         .filter(user_tokens::Column::Token.eq(token_data.claims.uuid))
-        .one(&state.db_admin)
+        .one(&state.db)
         .await?
         .ok_or(Error::Unauthorized)?;
 
     let mut user_token = user_token.into_active_model();
     user_token.updated_at = Set(Utc::now());
-    user_token.save(&state.db_admin).await?;
+    user_token.save(&state.db).await?;
 
     request.extensions_mut().insert(token_data.claims);
 
