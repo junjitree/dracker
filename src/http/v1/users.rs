@@ -21,9 +21,7 @@ use crate::{
 pub struct Params {
     #[validate(email)]
     pub email: String,
-    #[validate(length(min = 1))]
     pub given_name: String,
-    #[validate(length(min = 1))]
     pub surname: String,
 }
 

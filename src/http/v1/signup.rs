@@ -1,16 +1,26 @@
 use axum::{Json, Router, extract::State, routing::post};
 use jsonwebtoken::{Algorithm, Header, encode};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, ColumnTrait, EntityTrait, QueryFilter};
+use serde::Deserialize;
 use url::Url;
 use validator::Validate;
 
 use crate::{
     AppState, Error, Response, Result,
-    auth::ResetClaim,
+    auth::{ResetClaim, hash_password},
     entity::{prelude::Users, users},
-    http::v1::users::Params,
     mail::user::send_welcome,
 };
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct Params {
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min = 8))]
+    pub password: String,
+    pub given_name: String,
+    pub surname: String,
+}
 
 pub fn routes() -> Router<AppState> {
     Router::new().route("/signup", post(store))
@@ -32,7 +42,7 @@ async fn store(State(state): State<AppState>, Json(params): Json<Params>) -> Res
 
     let user = users::ActiveModel {
         email: Set(params.email),
-        password: Set("".into()),
+        password: Set(hash_password(&params.password)?),
         given_name: Set(params.given_name),
         surname: Set(params.surname),
         ..Default::default()

@@ -18,14 +18,10 @@ pub fn routes(state: &AppState) -> Router<AppState> {
 
     // WARN: AUTHENTICATED ROUTES
     let auth_router = Router::new()
-        .nest(
-            "/v1",
-            Router::new()
-                .merge(pings::routes())
-                .merge(trackers::routes())
-                .merge(users::routes()),
-        )
+        .merge(pings::routes())
+        .merge(trackers::routes())
+        .merge(users::routes())
         .layer(middleware::from_fn_with_state(state.clone(), auth));
 
-    Router::new().merge(publ_router).merge(auth_router)
+    Router::new().nest("/v1", Router::new().merge(publ_router).merge(auth_router))
 }
