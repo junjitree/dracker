@@ -62,12 +62,12 @@ pub async fn auth(
         .get(X_CSRF_TOKEN)
         .and_then(|header| header.to_str().ok())
         .map(String::from)
-        .ok_or(Error::Forbidden)?;
+        .unwrap_or_default();
 
     let csrf_cookie = CookieJar::from_headers(request.headers())
         .get(X_CSRF_TOKEN)
         .map(|cookie| cookie.value().to_string())
-        .ok_or(Error::Forbidden)?;
+        .unwrap_or_default();
 
     if csrf_header != csrf_cookie {
         return Err(Error::Forbidden);

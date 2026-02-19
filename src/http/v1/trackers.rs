@@ -1,20 +1,22 @@
 use crate::{
-    AppState,
+    AppState, Error,
+    auth::AuthClaim,
     entity::{prelude::Trackers, trackers},
     http::params::QueryParams,
     skippy,
 };
 use axum::{
-    Json, Router,
+    Extension, Json, Router,
     extract::{Query, State},
-    routing::get,
+    routing::{get, post},
 };
 use chrono::{DateTime, Utc};
 use sea_orm::{
-    ColumnTrait, Condition, EntityTrait, FromQueryResult, PaginatorTrait, QueryFilter, QueryOrder,
-    QuerySelect, Select,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, FromQueryResult,
+    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Select,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 use crate::result::Result;
 
@@ -22,13 +24,22 @@ use crate::result::Result;
 struct Dto {
     id: u64,
     name: String,
+    desc: String,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+struct TrackerParams {
+    #[validate(length(min = 1))]
+    name: String,
+    desc: String,
 }
 
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/trackers", get(index))
+        .route("/trackers", post(store))
         .route("/trackers/count", get(count))
 }
 
@@ -73,4 +84,26 @@ async fn count(
     let count = query(&params).count(&state.db).await?;
 
     Ok(Json(count))
+}
+
+async fn store(
+    Extension(auth): Extension<AuthClaim>,
+    State(state): State<AppState>,
+    Json(params): Json<TrackerParams>,
+) -> Result<Json<u64>> {
+    if let Err(err) = params.validate() {
+        return Err(Error::BadRequest(err.to_string()));
+    }
+
+    let tracker = trackers::ActiveModel {
+        user_id: Set(auth.user_id),
+        name: Set(params.name),
+        desc: Set(params.desc),
+
+        ..Default::default()
+    }
+    .insert(&state.db)
+    .await?;
+
+    Ok(Json(tracker.id))
 }
