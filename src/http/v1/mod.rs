@@ -6,6 +6,7 @@ pub mod auth;
 pub mod password;
 pub mod pings;
 pub mod signup;
+pub mod tokens;
 pub mod trackers;
 pub mod users;
 
@@ -19,6 +20,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
     // WARN: AUTHENTICATED ROUTES
     let auth_router = Router::new()
         .merge(pings::routes())
+        .merge(tokens::routes())
         .merge(trackers::routes())
         .merge(users::routes())
         .layer(middleware::from_fn_with_state(state.clone(), auth));
