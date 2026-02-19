@@ -94,7 +94,7 @@ async fn main() -> Result<()> {
         .allow_origin([
             origin.parse().unwrap(),
             // INFO: This is for local development
-            "http://localhost:9001".parse().unwrap(),
+            "http://localhost:9000".parse().unwrap(),
         ])
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers([
