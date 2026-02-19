@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod pings;
 pub mod trackers;
 pub mod user_tokens;
 pub mod users;
