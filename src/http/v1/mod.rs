@@ -4,6 +4,7 @@ use crate::{AppState, http::middleware::auth};
 
 pub mod auth;
 pub mod password;
+pub mod pings;
 pub mod signup;
 pub mod trackers;
 pub mod users;
@@ -20,6 +21,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
         .nest(
             "/v1",
             Router::new()
+                .merge(pings::routes())
                 .merge(trackers::routes())
                 .merge(users::routes()),
         )
