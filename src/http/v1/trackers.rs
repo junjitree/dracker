@@ -1,5 +1,5 @@
 use crate::{
-    AppState, Error,
+    AppState, Error, Response,
     auth::AuthClaim,
     entity::{prelude::Trackers, trackers},
     http::params::QueryParams,
@@ -7,13 +7,13 @@ use crate::{
 };
 use axum::{
     Extension, Json, Router,
-    extract::{Query, State},
-    routing::{get, post},
+    extract::{Path, Query, State},
+    routing::{delete, get, post},
 };
 use chrono::{DateTime, Utc};
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, Condition, EntityTrait, FromQueryResult,
-    PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Select,
+    IntoActiveModel, PaginatorTrait, QueryFilter, QueryOrder, QuerySelect, Select,
 };
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -42,6 +42,8 @@ pub fn routes() -> Router<AppState> {
         .route("/trackers", get(index))
         .route("/trackers", post(store))
         .route("/trackers/count", get(count))
+        .route("/trackers/{id}", get(show))
+        .route("/trackers/{id}", delete(destroy))
 }
 
 fn query(params: &QueryParams) -> Select<Trackers> {
@@ -57,6 +59,14 @@ fn query(params: &QueryParams) -> Select<Trackers> {
             .add(trackers::Column::Id.eq(&q))
             .add(trackers::Column::Name.contains(&q)),
     )
+}
+
+fn query_one(id: u64) -> Select<Trackers> {
+    Trackers::find_by_id(id)
+}
+
+fn query_select(query: Select<Trackers>) -> Select<Trackers> {
+    query
 }
 
 async fn index(
@@ -112,4 +122,24 @@ async fn store(
     .await?;
 
     Ok(Json(tracker.id))
+}
+
+async fn show(State(state): State<AppState>, Path(id): Path<u64>) -> Result<Json<Dto>> {
+    let tracker = query_select(query_one(id))
+        .into_model::<Dto>()
+        .one(&state.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    Ok(Json(tracker))
+}
+
+async fn destroy(State(state): State<AppState>, Path(id): Path<u64>) -> Result<Response> {
+    let tracker = query_one(id).one(&state.db).await?.ok_or(Error::NotFound)?;
+
+    let mut tracker = tracker.into_active_model();
+    tracker.updated_at = Set(Utc::now());
+    tracker.save(&state.db).await?;
+
+    Ok(Response::Accepted)
 }
