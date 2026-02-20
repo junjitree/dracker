@@ -19,6 +19,12 @@ pub enum Error {
     Unauthorized,
 }
 
+impl From<sqids::Error> for Error {
+    fn from(_: sqids::Error) -> Self {
+        Self::Internal("sqids::Error".into())
+    }
+}
+
 impl From<crypto::Error> for Error {
     fn from(_: crypto::Error) -> Self {
         Self::Internal("crypto::Error".into())

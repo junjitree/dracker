@@ -1,4 +1,5 @@
 use dotenv::dotenv;
+use sqids::Sqids;
 use tracing::{Level, info};
 use tracing_subscriber::FmtSubscriber;
 
@@ -18,6 +19,10 @@ fn tracing() {
 
     let subscriber = FmtSubscriber::builder().with_max_level(level).finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+}
+
+pub fn sqids() -> Result<Sqids, sqids::Error> {
+    Sqids::builder().min_length(10).build()
 }
 
 pub fn init() {

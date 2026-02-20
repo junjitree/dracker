@@ -4,6 +4,7 @@ use crate::{AppState, http::middleware::auth};
 
 pub mod auth;
 pub mod password;
+pub mod ping;
 pub mod pings;
 pub mod signup;
 pub mod tokens;
@@ -15,6 +16,7 @@ pub fn routes(state: &AppState) -> Router<AppState> {
     let publ_router = Router::new()
         .merge(auth::routes(state))
         .merge(password::routes())
+        .merge(ping::routes())
         .merge(signup::routes());
 
     // WARN: AUTHENTICATED ROUTES

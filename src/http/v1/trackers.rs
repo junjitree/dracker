@@ -3,7 +3,7 @@ use crate::{
     auth::AuthClaim,
     entity::{prelude::Trackers, trackers},
     http::params::QueryParams,
-    skippy,
+    skippy, util,
 };
 use axum::{
     Extension, Json, Router,
@@ -23,6 +23,7 @@ use crate::result::Result;
 #[derive(Serialize, FromQueryResult)]
 struct Dto {
     id: u64,
+    slug: Option<String>,
     name: String,
     desc: String,
     created_at: DateTime<Utc>,
@@ -66,13 +67,18 @@ async fn index(
     let col = skippy::column(params.sort.clone(), trackers::Column::UpdatedAt);
     let ord = skippy::order(params.desc, true);
 
-    let trackers = query(&params)
+    let mut trackers = query(&params)
         .offset(skip)
         .limit(take)
         .order_by(col, ord)
         .into_model::<Dto>()
         .all(&state.db)
         .await?;
+
+    let sqids = util::sqids()?;
+    for tracker in &mut trackers {
+        tracker.slug = Some(sqids.encode(&[tracker.id])?);
+    }
 
     Ok(Json(trackers))
 }
